@@ -5,7 +5,6 @@ import io from "socket.io-client";
 import queryString from "query-string";
 import Spinner from "./Spinner";
 import useSound from "use-sound";
-// import { useAccount } from "wagmi";
 
 import bgMusic from "../assets/sounds/game-bg-music.mp3";
 import unoSound from "../assets/sounds/uno-sound.mp3";
@@ -15,15 +14,10 @@ import draw2CardSound from "../assets/sounds/draw2-sound.mp3";
 import wildCardSound from "../assets/sounds/wild-sound.mp3";
 import draw4CardSound from "../assets/sounds/draw4-sound.mp3";
 import gameOverSound from "../assets/sounds/game-over-sound.mp3";
+import logo from "../assets/logo.png";
+import cardBack from "../assets/card-back.png";
 
-// import { useNetwork } from "wagmi";
-// import { ethers } from "ethers";
 
-// import {
-//   contractAddress,
-//   apiUrls,
-//   OxReceiverUNO_ABI,
-// } from "../contract/constants";
 //NUMBER CODES FOR ACTION CARDS
 //SKIP - 404
 //DRAW 2 - 252
@@ -32,13 +26,10 @@ import gameOverSound from "../assets/sounds/game-over-sound.mp3";
 
 let socket;
 const ENDPOINT = "http://localhost:5002";
-// const ENDPOINT = "https://uno-online-multiplayer.herokuapp.com/";
+// const ENDPOINT = 'https://uno-online-multiplayer.herokuapp.com/'
 
 const Game = (props) => {
-  // const chain = useNetwork();
   const data = queryString.parse(props.location.search);
-  // const { address } = useAccount();
-  // eslint-disable-next-line no-unused-vars
 
   //initialize socket state
   const [room, setRoom] = useState(data.roomCode);
@@ -56,12 +47,11 @@ const Game = (props) => {
       transports: ["websocket"],
     };
     socket = io.connect(ENDPOINT, connectionOptions);
-    //socket.emit("join", { room: room, address: address }, (error) => {
+
     socket.emit("join", { room: room }, (error) => {
-      if (error) {
-        setRoomFull(true);
-      }
+      if (error) setRoomFull(true);
     });
+
     //cleanup on component unmount
     return function cleanup() {
       socket.emit("disconnected");
@@ -95,55 +85,6 @@ const Game = (props) => {
   const [playDraw4CardSound] = useSound(draw4CardSound);
   const [playGameOverSound] = useSound(gameOverSound);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     console.log("Ending Game...");
-
-  //     if (winner === "Player 1") {
-  //       console.log("Creating provider...");
-  //       const provider = new ethers.providers.JsonRpcProvider(
-  //         apiUrls[chain.id],
-  //         chain.id
-  //       );
-  //       console.log("Creating signer...");
-  //       const signer = new ethers.Wallet(
-  //         process.env.REACT_APP_PRIVATE_KEY,
-  //         provider
-  //       );
-  //       console.log("Creating contract...");
-  //       const OxReceiverUNO = new ethers.Contract(
-  //         contractAddress[chain.id],
-  //         OxReceiverUNO_ABI,
-  //         signer
-  //       );
-  //       await OxReceiverUNO.endGame(
-  //         room,
-  //         users.find((user) => user.name === "Player 1").address
-  //       );
-  //     } else if (winner === "Player 2") {
-  //       console.log("Creating provider...");
-  //       const provider = new ethers.providers.JsonRpcProvider(
-  //         apiUrls[chain.id],
-  //         chain.id
-  //       );
-  //       console.log("Creating signer...");
-  //       const signer = new ethers.Wallet(
-  //         process.env.REACT_APP_PRIVATE_KEY,
-  //         provider
-  //       );
-  //       console.log("Creating contract...");
-  //       const OxReceiverUNO = new ethers.Contract(
-  //         contractAddress[chain.id],
-  //         OxReceiverUNO_ABI,
-  //         signer
-  //       );
-  //       await OxReceiverUNO.endGame(
-  //         room,
-  //         users.find((user) => user.name === "Player 2").address
-  //       );
-  //     }
-  //   })();
-  // }, [winner]); // eslint-disable-line react-hooks/exhaustive-deps
   //runs once on component mount
   useEffect(() => {
     //shuffle PACK_OF_CARDS array
@@ -191,8 +132,8 @@ const Game = (props) => {
       turn: "Player 1",
       player1Deck: [...player1Deck],
       player2Deck: [...player2Deck],
-      currentColor: playedCardsPile[0]?.charAt(1),
-      currentNumber: playedCardsPile[0]?.charAt(0),
+      currentColor: playedCardsPile[0]?.charAt(1) || null,
+      currentNumber: playedCardsPile[0]?.charAt(0) || null,
       playedCardsPile: [...playedCardsPile],
       drawCardPile: [...drawCardPile],
     });
@@ -235,27 +176,43 @@ const Game = (props) => {
         playedCardsPile,
         drawCardPile,
       }) => {
-        gameOver && setGameOver(gameOver);
-        gameOver === true && playGameOverSound();
-        winner && setWinner(winner);
-        turn && setTurn(turn);
-        player1Deck && setPlayer1Deck(player1Deck);
-        player2Deck && setPlayer2Deck(player2Deck);
-        currentColor && setCurrentColor(currentColor);
-        currentNumber && setCurrentNumber(currentNumber);
-        playedCardsPile && setPlayedCardsPile(playedCardsPile);
-        drawCardPile && setDrawCardPile(drawCardPile);
+        if (gameOver) {
+          setGameOver(gameOver);
+          playGameOverSound();
+        }
+        if (winner) {
+          setWinner(winner);
+        }
+        if (turn) {
+          setTurn(turn);
+        }
+        if (player1Deck) {
+          setPlayer1Deck(player1Deck);
+        }
+        if (player2Deck) {
+          setPlayer2Deck(player2Deck);
+        }
+        if (currentColor) {
+          setCurrentColor(currentColor);
+        }
+        if (currentNumber) {
+          setCurrentNumber(currentNumber);
+        }
+        if (playedCardsPile) {
+          setPlayedCardsPile(playedCardsPile);
+        }
+        if (drawCardPile) {
+          setDrawCardPile(drawCardPile);
+        }
         setUnoButtonPressed(false);
       }
     );
 
     socket.on("roomData", ({ users }) => {
-      console.log("received Roomdata");
       setUsers(users);
     });
 
     socket.on("currentUserData", ({ name }) => {
-      console.log("received Current UserData");
       setCurrentUser(name);
     });
 
@@ -265,7 +222,7 @@ const Game = (props) => {
       const chatBody = document.querySelector(".chat-body");
       chatBody.scrollTop = chatBody.scrollHeight;
     });
-  });
+  }, []);
 
   //some util functions
   const checkGameOver = (arr) => {
@@ -1281,10 +1238,8 @@ const Game = (props) => {
         }
         break;
       }
-
       //if card played was a draw four wild card
       case "D4W":
-        // eslint-disable-next-line no-lone-blocks
         {
           //check who played the card and return new state accordingly
           if (cardPlayedBy === "Player 1") {
@@ -1793,7 +1748,7 @@ const Game = (props) => {
       {!roomFull ? (
         <>
           <div className="topInfo">
-            <img src={"assets/logo.png"} alt="logo" />
+            <img src={logo} alt="logo" />
             <h1>Game Code: {room}</h1>
             <span>
               <button
@@ -1857,10 +1812,10 @@ const Game = (props) => {
                         {player2Deck.map((item, i) => (
                           <img
                             key={i}
-                            alt="card"
+                            alt="card-back"
                             className="Card"
                             onClick={() => onCardPlayedHandler(item)}
-                            src={"assets/card-back.png"}
+                            src={cardBack}
                           />
                         ))}
                         {turn === "Player 2" && <Spinner />}
@@ -1882,7 +1837,7 @@ const Game = (props) => {
                         {playedCardsPile && playedCardsPile.length > 0 && (
                           <img
                             className="Card"
-                            alt="card"
+                            alt="played-card"
                             src={`assets/cards-front/${
                               playedCardsPile[playedCardsPile.length - 1]
                             }.png`}
@@ -1907,13 +1862,13 @@ const Game = (props) => {
                         }
                       >
                         <p className="playerDeckText">Player 1</p>
+
                         {player1Deck.map((item, i) => (
-                          <img
-                            key={i}
-                            className="Card"
-                            alt="card"
+                          <div
+                            key={`${item}-${i}`}
                             onClick={() => onCardPlayedHandler(item)}
                             src={`assets/cards-front/${item}.png`}
+                            alt={`Playing card ${item}`}
                           />
                         ))}
                       </div>
@@ -1924,14 +1879,14 @@ const Game = (props) => {
                             {!isChatBoxHidden ? (
                               <span
                                 onClick={toggleChatBox}
-                                class="material-icons"
+                                className="material-icons"
                               >
                                 keyboard_arrow_down
                               </span>
                             ) : (
                               <span
                                 onClick={toggleChatBox}
-                                class="material-icons"
+                                className="material-icons"
                               >
                                 keyboard_arrow_up
                               </span>
@@ -1939,13 +1894,18 @@ const Game = (props) => {
                           </div>
                           <div className="chat-body">
                             <div className="msg-insert">
-                              {messages.map((msg) =>
-                                msg.user === "Player 2" ? (
-                                  <div className="msg-receive">{msg.text}</div>
-                                ) : (
-                                  <div className="msg-send">{msg.text}</div>
-                                )
-                              )}
+                              {messages.map((msg) => {
+                                if (msg.user === "Player 2")
+                                  return (
+                                    <div className="msg-receive">
+                                      {msg.text}
+                                    </div>
+                                  );
+                                if (msg.user === "Player 1")
+                                  return (
+                                    <div className="msg-send">{msg.text}</div>
+                                  );
+                              })}
                             </div>
                             <div className="chat-text">
                               <input
@@ -1977,10 +1937,10 @@ const Game = (props) => {
                         {player1Deck.map((item, i) => (
                           <img
                             key={i}
-                            alt="card"
+                            alt="card-back"
                             className="Card"
                             onClick={() => onCardPlayedHandler(item)}
-                            src={`assets/card-back.png`}
+                            src={cardBack}
                           />
                         ))}
                         {turn === "Player 1" && <Spinner />}
@@ -2002,7 +1962,7 @@ const Game = (props) => {
                         {playedCardsPile && playedCardsPile.length > 0 && (
                           <img
                             className="Card"
-                            alt="card"
+                            alt="play-card"
                             src={`assets/cards-front/${
                               playedCardsPile[playedCardsPile.length - 1]
                             }.png`}
@@ -2030,7 +1990,7 @@ const Game = (props) => {
                         {player2Deck.map((item, i) => (
                           <img
                             key={i}
-                            alt="card"
+                            alt="card-item"
                             className="Card"
                             onClick={() => onCardPlayedHandler(item)}
                             src={`assets/cards-front/${item}.png`}
@@ -2044,14 +2004,14 @@ const Game = (props) => {
                             {!isChatBoxHidden ? (
                               <span
                                 onClick={toggleChatBox}
-                                class="material-icons"
+                                className="material-icons"
                               >
                                 keyboard_arrow_down
                               </span>
                             ) : (
                               <span
                                 onClick={toggleChatBox}
-                                class="material-icons"
+                                className="material-icons"
                               >
                                 keyboard_arrow_up
                               </span>
@@ -2059,13 +2019,18 @@ const Game = (props) => {
                           </div>
                           <div className="chat-body">
                             <div className="msg-insert">
-                              {messages.map((msg) =>
-                                msg.user === "Player 1" ? (
-                                  <div className="msg-receive">{msg.text}</div>
-                                ) : (
-                                  <div className="msg-send">{msg.text}</div>
-                                )
-                              )}
+                              {messages.map((msg) => {
+                                if (msg.user === "Player 1")
+                                  return (
+                                    <div className="msg-receive">
+                                      {msg.text}
+                                    </div>
+                                  );
+                                if (msg.user === "Player 2")
+                                  return (
+                                    <div className="msg-send">{msg.text}</div>
+                                  );
+                              })}
                             </div>
                             <div className="chat-text">
                               <input
