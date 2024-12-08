@@ -1,9 +1,11 @@
 
-import { CallData, constants, RpcProvider, Contract, Account, json, ec, cairo } from "starknet";
+import { CallData, constants, RpcProvider, Contract, Account, json, ec, cairo, shortString } from "starknet";
 import fs from "fs";
 import * as dotenv from "dotenv";
 import { getCompiledCode } from "./utils";
 dotenv.config();
+
+
 
 
 async function main() {
@@ -35,8 +37,21 @@ async function main() {
         max_players: 2
     })
 
-    
+    const txReceipt = await provider.waitForTransaction("0xdcbf94f9cfcab31bf0b985d8a1fa2a8a5815bdc6259876c405ee8121c0779d");
+    if (txReceipt.isSuccess()) {
+        const ErrorMessage = shortString.decodeShortString('0x4d6567612050616e69632e');
+        console.log(ErrorMessage)
+        const events = myTestContract.parseEvents(txReceipt);
+        console.log(events)
+        const listEvents = txReceipt.events;
+        console.log(listEvents);
+      }
+
+
     const res1 = await myTestContract.create_game(create_game_req);
+
+    console.log('testpoint1');
+    // console.log(res1.events);
    
     // const tx = await myTestContract.increase_balance(
     //     CallData.compile({
