@@ -132,8 +132,8 @@ const Game = (props) => {
       turn: "Player 1",
       player1Deck: [...player1Deck],
       player2Deck: [...player2Deck],
-      currentColor: playedCardsPile[0]?.charAt(1) || null,
-      currentNumber: playedCardsPile[0]?.charAt(0) || null,
+      currentColor: playedCardsPile[0]?.charAt(1),
+      currentNumber: playedCardsPile[0]?.charAt(0),
       playedCardsPile: [...playedCardsPile],
       drawCardPile: [...drawCardPile],
     });
@@ -163,50 +163,19 @@ const Game = (props) => {
       }
     );
 
-    socket.on(
-      "updateGameState",
-      ({
-        gameOver,
-        winner,
-        turn,
-        player1Deck,
-        player2Deck,
-        currentColor,
-        currentNumber,
-        playedCardsPile,
-        drawCardPile,
-      }) => {
-        if (gameOver) {
-          setGameOver(gameOver);
-          playGameOverSound();
-        }
-        if (winner) {
-          setWinner(winner);
-        }
-        if (turn) {
-          setTurn(turn);
-        }
-        if (player1Deck) {
-          setPlayer1Deck(player1Deck);
-        }
-        if (player2Deck) {
-          setPlayer2Deck(player2Deck);
-        }
-        if (currentColor) {
-          setCurrentColor(currentColor);
-        }
-        if (currentNumber) {
-          setCurrentNumber(currentNumber);
-        }
-        if (playedCardsPile) {
-          setPlayedCardsPile(playedCardsPile);
-        }
-        if (drawCardPile) {
-          setDrawCardPile(drawCardPile);
-        }
-        setUnoButtonPressed(false);
-      }
-    );
+    socket.on('updateGameState', ({ gameOver, winner, turn, player1Deck, player2Deck, currentColor, currentNumber, playedCardsPile, drawCardPile }) => {
+      gameOver && setGameOver(gameOver)
+      gameOver===true && playGameOverSound()
+      winner && setWinner(winner)
+      turn && setTurn(turn)
+      player1Deck && setPlayer1Deck(player1Deck)
+      player2Deck && setPlayer2Deck(player2Deck)
+      currentColor && setCurrentColor(currentColor)
+      currentNumber && setCurrentNumber(currentNumber)
+      playedCardsPile && setPlayedCardsPile(playedCardsPile)
+      drawCardPile && setDrawCardPile(drawCardPile)
+      setUnoButtonPressed(false)
+  })
 
     socket.on("roomData", ({ users }) => {
       setUsers(users);
